@@ -1,31 +1,40 @@
+# Stage 1: build the donetick backend from source (Novak101/donetick fork)
+# instead of downloading upstream's prebuilt release binary, which doesn't
+# contain the per-chore icon feature or the local-storage URL-signing fix.
+# --platform=$BUILDPLATFORM pins this stage to the host (native) architecture
+# even when building for other target platforms, so `go build` cross-compiles
+# natively via GOOS/GOARCH instead of running (much slower) under emulation --
+# same approach donetick's own upstream Dockerfile uses.
+FROM --platform=$BUILDPLATFORM golang:1.24-alpine AS builder
+
+WORKDIR /usr/src/app
+RUN apk --no-cache add ca-certificates git
+
+RUN git clone --depth 1 https://github.com/Novak101/donetick.git .
+
+RUN go mod download && go mod verify
+
+ARG TARGETOS
+ARG TARGETARCH
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
+    go build -ldflags="-s -w" -buildvcs=false -o /donetick .
+
+# Stage 2: the actual add-on image, based on the Home Assistant base image
+# (s6-overlay/bashio, required for Supervisor add-ons) -- this is NOT where
+# the Go build happens, just where the compiled binary ends up running.
 ARG BUILD_FROM
 FROM $BUILD_FROM
 
 WORKDIR /app
 
-RUN apk --no-cache add gcc musl-dev git sqlite-dev curl jq
 RUN mkdir -p /app/core
+COPY --from=builder /donetick /app/core/donetick
+COPY --from=builder /usr/src/app/config /app/core/config
+RUN chmod +x /app/core/donetick
 
-# Determine the architecture and download the appropriate binary
-# TODO: am sure there is a better way to do this but this works for now
-RUN arch=$(uname -m) && \
-    case "$arch" in \
-        x86_64) binary="donetick_Linux_x86_64.tar.gz" ;; \
-        aarch64) binary="donetick_Linux_arm64.tar.gz" ;; \
-        armv7l) binary="donetick_Linux_armv7.tar.gz" ;; \
-        armv6l) binary="donetick_Linux_armv6.tar.gz" ;; \
-        *) echo "Unsupported architecture: $arch" && exit 1 ;; \
-    esac && \
-    latest_release=$(curl --silent "https://api.github.com/repos/donetick/donetick/releases/latest" | jq -r .tag_name) && \
-    curl -fL "https://github.com/donetick/donetick/releases/download/${latest_release}/${binary}" | tar -xz -C /app/core
-
-# Copy entrypoint script
 COPY entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
-
-# Expose necessary ports
 EXPOSE 2021
 
-# Set the entrypoint script
 CMD ["/app/entrypoint.sh"]
