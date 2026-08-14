@@ -1,3 +1,9 @@
+# ARG declared before the first FROM is globally scoped, so it's available
+# to populate the *second* stage's `FROM $BUILD_FROM` below -- an ARG
+# declared partway through the file (as this originally was) only scopes to
+# the one stage it's declared in and can't be used in a later FROM line.
+ARG BUILD_FROM
+
 # Stage 1: build the donetick backend from source (Novak101/donetick fork)
 # instead of downloading upstream's prebuilt release binary, which doesn't
 # contain the per-chore icon feature or the local-storage URL-signing fix.
