@@ -16,7 +16,12 @@ FROM --platform=$BUILDPLATFORM golang:1.24-alpine AS builder
 WORKDIR /usr/src/app
 RUN apk --no-cache add ca-certificates git
 
-RUN git clone --depth 1 https://github.com/Novak101/donetick.git .
+# Busts the Docker build cache whenever develop has new commits: the
+# `RUN git clone` instruction's text never changes between versions, so
+# without this Docker was silently reusing the layer from whichever build
+# first populated the cache -- shipping stale code despite version bumps.
+ADD https://api.github.com/repos/Novak101/donetick/commits/develop /tmp/donetick-rev.json
+RUN git clone --depth 1 --branch develop https://github.com/Novak101/donetick.git .
 
 RUN go mod download && go mod verify
 
