@@ -3,6 +3,8 @@
 
 # Storage settings
 export DT_STORAGE_STORAGE_TYPE=$(bashio::config 'storage_type')
+export DT_STORAGE_MAX_FILE_SIZE=$(bashio::config 'storage_max_file_size')
+export DT_STORAGE_MAX_USER_STORAGE=$(bashio::config 'storage_max_user_storage')
 
 # Envirment variables:
 export DT_TELEGRAM_TOKEN=$(bashio::config 'telegram_token')
