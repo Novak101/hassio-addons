@@ -5,6 +5,13 @@
 export DT_STORAGE_STORAGE_TYPE=$(bashio::config 'storage_type')
 export DT_STORAGE_MAX_FILE_SIZE=$(bashio::config 'storage_max_file_size')
 export DT_STORAGE_MAX_USER_STORAGE=$(bashio::config 'storage_max_user_storage')
+# Local storage defaults to a path relative to the binary's working
+# directory, which lives inside the container image, not the /data volume.
+# Every add-on update recreates the container from a fresh image, silently
+# wiping anything stored there (this is why profile photos and attachments
+# were disappearing on update). /data is the only path Supervisor persists
+# across updates.
+export DT_STORAGE_BASE_PATH="/data/uploads"
 
 # Envirment variables:
 export DT_TELEGRAM_TOKEN=$(bashio::config 'telegram_token')
