@@ -20,12 +20,15 @@ ports:
   80/tcp: 8005
   2021/tcp: 2021
 webui: http://[HOST]:[PORT:2021]
-image: "ghcr.io/donetick/{arch}-hassio-addons"
+# image intentionally omitted so Supervisor builds locally from this
+# Dockerfile instead of pulling the upstream prebuilt image, which doesn't
+# have the storage_type fix below baked in.
 
 
 
 options:
   jwt_secret: "change_this_to_a_secure_random_string_32_characters_long"
+  storage_type: "local"
   jwt_session_time: "168h"
   jwt_max_refresh: "168h"
   telegram_token: ""
@@ -54,6 +57,9 @@ options:
 
 
 schema:
+  # Storage settings
+  storage_type: "str?"
+
   # JWT settings
   jwt_secret: "str?"
   jwt_session_time: "str?"

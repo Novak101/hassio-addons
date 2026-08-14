@@ -1,6 +1,9 @@
 #!/usr/bin/with-contenv bashio
 
 
+# Storage settings
+export DT_STORAGE_STORAGE_TYPE=$(bashio::config 'storage_type')
+
 # Envirment variables:
 export DT_TELEGRAM_TOKEN=$(bashio::config 'telegram_token')
 export DT_PUSHOVER_TOKEN=$(bashio::config 'pushover_token')
