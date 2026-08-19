@@ -1,6 +1,6 @@
 # https://developers.home-assistant.io/docs/add-ons/configuration#add-on-config
 name: Donetick Addon
-version: "0.1.76-12"
+version: "0.1.76-13"
 slug: donetick
 description: Simplify Tasks & Chores, Together.
 url: "https://github.com/Novak101/hassio-addons/tree/main/donetick"
